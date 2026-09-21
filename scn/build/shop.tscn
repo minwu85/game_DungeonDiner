@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://bathd1nlvrgr3"]
+[gd_scene load_steps=12 format=3 uid="uid://bathd1nlvrgr3"]
 
 [ext_resource type="Texture2D" uid="uid://bbsplkof5alfh" path="res://art/art2/build/shop_anim.png" id="1_7jpyn"]
 [ext_resource type="Script" path="res://scn/build/shop.gd" id="2_shop"]
@@ -56,6 +56,9 @@ animations = [{
 [sub_resource type="CircleShape2D" id="CircleShape2D_jrjl8"]
 radius = 46.0109
 
+[sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_shop"]
+polygon = PackedVector2Array(46, 0, 39.8, 23, 23, 39.8, 0, 46, -23, 39.8, -39.8, 23, -46, 0, -39.8, -23, -23, -39.8, 0, -46, 23, -39.8, 39.8, -23)
+
 [node name="shop" type="Area2D"]
 script = ExtResource("2_shop")
 
@@ -69,6 +72,10 @@ frame_progress = 0.676678
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(0, 18)
 shape = SubResource("CircleShape2D_jrjl8")
+
+[node name="LightOccluder2D" type="LightOccluder2D" parent="."]
+position = Vector2(0, 18)
+occluder = SubResource("OccluderPolygon2D_shop")
 
 [connection signal="body_entered" from="." to="." method="_on_body_entered"]
 [connection signal="body_exited" from="." to="." method="_on_body_exited"]

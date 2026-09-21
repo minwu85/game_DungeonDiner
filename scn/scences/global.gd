@@ -29,6 +29,7 @@ func perform_pending_transition() -> void:
 		transition_scene = false
 		current_scene = next_scene_name
 		game_first_loadin = false
+		save_game()
 		get_tree().change_scene_to_file(next_scene_path)
 
 # Where the player reappears in world.tscn depending on which area they
@@ -86,6 +87,59 @@ func reset_player_stats() -> void:
 	state_time = TimeState.MORNING
 	day_count = 1
 	phase_elapsed = 0.0
+
+# --- Save file ------------------------------------------------------------
+# A simple JSON dump of everything above. Autosaved on every scene
+# transition and on quitting to the menu; loaded (instead of a fresh
+# reset_player_stats()) when the start menu's Play button finds one.
+const SAVE_PATH := "user://save.json"
+
+func has_save() -> bool:
+	return FileAccess.file_exists(SAVE_PATH)
+
+func save_game() -> void:
+	var data := {
+		"gold": gold,
+		"max_player_health": max_player_health,
+		"player_health": player_health,
+		"max_stamina": max_stamina,
+		"stamina": stamina,
+		"xp": xp,
+		"level": level,
+		"inventory_items": inventory_items,
+		"day_count": day_count,
+		"state_time": state_time,
+		"phase_elapsed": phase_elapsed,
+	}
+	var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	if file:
+		file.store_string(JSON.stringify(data))
+		file.close()
+
+## Returns true if a save was found and loaded.
+func load_game() -> bool:
+	if not has_save():
+		return false
+	var file := FileAccess.open(SAVE_PATH, FileAccess.READ)
+	if not file:
+		return false
+	var parsed = JSON.parse_string(file.get_as_text())
+	file.close()
+	if typeof(parsed) != TYPE_DICTIONARY:
+		return false
+	gold = parsed.get("gold", 0)
+	max_player_health = parsed.get("max_player_health", DEFAULT_MAX_HEALTH)
+	player_health = parsed.get("player_health", DEFAULT_MAX_HEALTH)
+	max_stamina = parsed.get("max_stamina", DEFAULT_MAX_STAMINA)
+	stamina = parsed.get("stamina", DEFAULT_MAX_STAMINA)
+	xp = parsed.get("xp", 0)
+	level = parsed.get("level", 1)
+	inventory_items = parsed.get("inventory_items", [])
+	day_count = parsed.get("day_count", 1)
+	state_time = parsed.get("state_time", TimeState.MORNING)
+	phase_elapsed = parsed.get("phase_elapsed", 0.0)
+	game_first_loadin = true
+	return true
 
 
 enum TimeState {

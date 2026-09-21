@@ -2082,6 +2082,7 @@ map_world_size = Vector2(544, 287)
 [connection signal="body_entered" from="transition/cliff_transition_point" to="." method="_on_cliff_transition_point_body_entered"]
 [connection signal="timeout" from="light/day_night" to="." method="_on_day_night_timeout"]
 [connection signal="pressed" from="CanvasLayer/pausemenu/Panel/VBoxContainer/Resume" to="manager" method="_on_resume_pressed"]
+[connection signal="pressed" from="CanvasLayer/pausemenu/Panel/VBoxContainer/Save" to="manager" method="_on_save_pressed"]
 [connection signal="pressed" from="CanvasLayer/pausemenu/Panel/VBoxContainer/Inventory" to="manager" method="_on_inventory_pressed"]
 [connection signal="pressed" from="CanvasLayer/pausemenu/Panel/VBoxContainer/Quit" to="manager" method="_on_quit_pressed"]
 

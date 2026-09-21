@@ -19,10 +19,14 @@ func _process(delta: float) -> void:
 func _on_resume_pressed() -> void:
 	game_pause=!game_pause
 
+func _on_save_pressed() -> void:
+	global.save_game()
+
 func _on_quit_pressed() -> void:
 	get_tree().paused=false
+	global.save_game()
 	get_tree().change_scene_to_file("res://scn/menu/start_menu.tscn")
-	
+
 
 func _on_inventory_pressed() -> void:
 	get_tree().paused=false

@@ -1648,6 +1648,7 @@ shadow_enabled = true
 position = Vector2(164, 132)
 scale = Vector2(0.203828, 0.209844)
 color = Color(0.991831, 0.86887, 0.724311, 1)
+shadow_enabled = true
 texture = ExtResource("9_h4q5s")
 
 [node name="day_night" type="Timer" parent="cliff_side_light"]
@@ -1760,6 +1761,7 @@ text = "Close"
 [connection signal="pressed" from="CanvasLayer/ShopPanel/BuyButton" to="." method="_on_buy_sword_pressed"]
 [connection signal="pressed" from="CanvasLayer/ShopPanel/CloseButton" to="." method="_on_shop_close_pressed"]
 [connection signal="pressed" from="CanvasLayer/pausemenu/Panel/VBoxContainer/Resume" to="manager" method="_on_resume_pressed"]
+[connection signal="pressed" from="CanvasLayer/pausemenu/Panel/VBoxContainer/Save" to="manager" method="_on_save_pressed"]
 [connection signal="pressed" from="CanvasLayer/pausemenu/Panel/VBoxContainer/Inventory" to="manager" method="_on_inventory_pressed"]
 [connection signal="pressed" from="CanvasLayer/pausemenu/Panel/VBoxContainer/Quit" to="manager" method="_on_quit_pressed"]
 
