@@ -8,10 +8,11 @@ signal damage_received
 @onready var enhealth_txtAn = $enemy_healthtxtAn
 
 var alive = true
-var max_health = 100
-var enemy_health = 100
+@export var max_health: int = 100
+var enemy_health: int
 
 func _ready():
+	enemy_health = max_health
 	enhealth_bar.max_value = max_health
 	enhealth_bar.value = enemy_health
 	enhealth_bar.visible = false

@@ -3,37 +3,13 @@ extends CharacterBody2D
 @onready var damage_cooldown = $take_damage_cooldown
 @onready var enemy_health = $enemy_health
 
-enum PlayerState {
-	IDLE,
-	CHASE,
-	ATTACK,
-	DAMAGE,
-	RECOVER,
-	DEAD
-}
-var state: PlayerState = PlayerState.IDLE:
-	set(value):
-		state = value
-		match state:
-			PlayerState.IDLE:
-				pass
-				#idle_state()
-			PlayerState.CHASE:
-				pass
-				#chase_state()
-			PlayerState.ATTACK:
-				pass
-				#attack_state()
-			PlayerState.RECOVER:
-				recover_state()
-			PlayerState.DEAD:
-				death_state()
+@export var speed: float = 40.0 # Enemy movement speed
+@export var attack_range: float = 40.0
+@export var contact_damage: int = 10 # damage dealt to enemy_health per hit while player is attacking in range
+@export var xp_reward: int = 20
 
-var speed = 40 # Enemy movement speed
 var player_chase = false # Whether the enemy should chase the player
 var player = null # Reference to the player node
-
-@export var xp_reward: int = 20
 
 # Enemy health and status flags
 
@@ -44,12 +20,10 @@ var alive = true
 func _ready():
 	$enemy_health.connect("on_death", Callable(self, "death_state"))
 
-
-
 func _physics_process(delta):
 	if alive:
 		if can_take_damage and (global.player_current_attack or global.player_current_slice) and is_player_in_attack_range():
-			enemy_health.receive_damage(10)
+			enemy_health.receive_damage(contact_damage)
 			can_take_damage = false
 			damage_cooldown.start()
 
@@ -58,14 +32,14 @@ func _physics_process(delta):
 			move_and_collide(Vector2.ZERO)
 			animEn.play("ske_run")
 			animEn.flip_h = (player.position.x - position.x) < 0
-		
+
 		else:
 			animEn.play("ske_idle")
-		
+
 		move_and_slide()
 
 func is_player_in_attack_range() -> bool:
-	return player != null and position.distance_to(player.position) < 40  # tweak as needed
+	return player != null and position.distance_to(player.position) < attack_range
 
 # Player enters detection area
 func _on_detection_area_body_entered(body: Node2D) -> void:
@@ -102,12 +76,5 @@ func death_state():
 	await animEn.animation_finished
 	queue_free()
 
-
 func _on_take_damage_cooldown_timeout():
 	can_take_damage = true
-
-func recover_state():
-	animEn.play("ske_recover")
-	await animEn.animation_finished
-	if alive:
-		state = PlayerState.CHASE

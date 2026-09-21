@@ -4,10 +4,13 @@ signal leveled_up(new_level: int)
 
 @onready var health_bar = $HealthBar
 @onready var stamina_bar = $stamina
+@onready var gold_display = $GoldDisplay
 @onready var gold_label = $GoldDisplay/GoldLabel
 @onready var level_label = $LevelDisplay/LevelLabel
 @onready var xp_bar = $LevelDisplay/XPBar
 @onready var time_bar = $TimeBar
+
+var _last_gold_shown: int = 0
 
 @export var max_player_health := 100
 var _player_health := max_player_health
@@ -57,14 +60,34 @@ func _ready() -> void:
 	if stamina_bar:
 		stamina_bar.max_value = max_stamina
 		stamina_bar.value = stamina
+	_last_gold_shown = global.gold # don't pop a "+N" for gold carried over from before
 	set_gold(global.gold)
 	_update_level_ui()
 	_update_time_bar()
 
-# Updates the gold counter displayed below the energy/stamina bar
+# Updates the gold counter displayed below the energy/stamina bar, and pops
+# a little floating "+N" over it whenever gold goes up.
 func set_gold(amount: int) -> void:
+	if amount > _last_gold_shown:
+		_spawn_gold_popup(amount - _last_gold_shown)
+	_last_gold_shown = amount
 	if gold_label:
 		gold_label.text = str(amount)
+
+func _spawn_gold_popup(delta_amount: int) -> void:
+	if not gold_display:
+		return
+	var popup := Label.new()
+	popup.text = "+%d" % delta_amount
+	popup.modulate = Color(1, 0.85, 0.2)
+	popup.z_index = 10
+	add_child(popup)
+	popup.global_position = gold_display.global_position + Vector2(gold_display.size.x + 2, -2)
+	var tween := create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(popup, "global_position:y", popup.global_position.y - 14, 0.6)
+	tween.tween_property(popup, "modulate:a", 0.0, 0.6)
+	tween.chain().tween_callback(popup.queue_free)
 
 # Optional function to apply damage
 func apply_damage(amount: int) -> void:
