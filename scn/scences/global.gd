@@ -4,14 +4,43 @@ extends Node
 var player_current_attack = false
 var player_current_slice = false
 var current_scene = "world"
-var transition_scene = false
+var game_first_loadin = true
 
-var player_exit_cliffside_posx = 430
-var player_exit_cliffside_posy = 180
+# --- Scene transitions -------------------------------------------------
+# Generalized so any scene can hand off to any other scene (used to be a
+# single world<->cliff_side toggle, which stopped working once forest/cliff
+# were added). A transition trigger calls request_scene_transition(), and
+# the current scene's _process() calls perform_pending_transition() once
+# per frame to actually load it.
+var transition_scene = false
+var next_scene_path := ""
+var next_scene_name := ""
+var returning_from := "" # which scene we're coming back FROM, for spawn placement
+
+func request_scene_transition(scene_path: String, scene_name: String, return_marker: String = "") -> void:
+	transition_scene = true
+	next_scene_path = scene_path
+	next_scene_name = scene_name
+	if return_marker != "":
+		returning_from = return_marker
+
+func perform_pending_transition() -> void:
+	if transition_scene:
+		transition_scene = false
+		current_scene = next_scene_name
+		game_first_loadin = false
+		get_tree().change_scene_to_file(next_scene_path)
+
+# Where the player reappears in world.tscn depending on which area they
+# just left (each is just inside that area's transition point back to world).
 var player_start_posx = 80
 var player_start_posy = 60
-
-var game_first_loadin = true
+var player_exit_cliffside_posx = 430
+var player_exit_cliffside_posy = 180
+var player_exit_forest_posx = 5
+var player_exit_forest_posy = 120
+var player_exit_cliff_posx = 240
+var player_exit_cliff_posy = 10
 
 ## Minimal persistent inventory (survives scene changes, unlike the
 ## inventory screen's own slot nodes). Each entry is {"name": String, "icon": res:// path}.
@@ -26,6 +55,37 @@ func add_inventory_item(item_name: String, icon_path: String) -> bool:
 	inventory_items.append({"name": item_name, "icon": icon_path})
 	return true
 
+# --- Player stats persisted across scene changes ------------------------
+# The player (and its "stats" child) get fully destroyed and recreated on
+# every scene change, so anything that should survive a trip to the shop/
+# forest/cliff and back has to live here instead, and get pulled back into
+# the fresh player/stats nodes on _ready().
+var gold: int = 0
+var player_health: int = 100
+var max_player_health: int = 100
+var stamina: float = 100.0
+var max_stamina: float = 100.0
+var xp: int = 0
+var level: int = 1
+
+const DEFAULT_MAX_HEALTH := 100
+const DEFAULT_MAX_STAMINA := 100.0
+
+## Called when starting a fresh game (not a scene transition within a
+## playthrough) so a new run doesn't inherit the previous run's gold/death.
+func reset_player_stats() -> void:
+	gold = 0
+	max_player_health = DEFAULT_MAX_HEALTH
+	player_health = DEFAULT_MAX_HEALTH
+	max_stamina = DEFAULT_MAX_STAMINA
+	stamina = DEFAULT_MAX_STAMINA
+	xp = 0
+	level = 1
+	inventory_items.clear()
+	game_first_loadin = true
+	state_time = TimeState.MORNING
+	day_count = 1
+	phase_elapsed = 0.0
 
 
 enum TimeState {
@@ -35,6 +95,10 @@ enum TimeState {
 
 var state_time = TimeState.MORNING
 var day_count: int = 1
+
+## Seconds elapsed in the current day/night phase - drives the HUD time
+## bar. Reset whenever the phase flips.
+var phase_elapsed: float = 0.0
 
 ## Real-world length of one full day+night cycle. "5 minutes is a day" ->
 ## the timer that flips MORNING/EVENING fires every half of this.
@@ -53,20 +117,11 @@ const DAY_LIGHT_COLOR := Color(1, 1, 1)
 const SUNSET_LIGHT_COLOR := Color(0.25, 0.55, 0.65)
 const NIGHT_LIGHT_COLOR := Color(0.85, 0.7, 0.3)
 
-
-func finish_changescenes():
-	if transition_scene==true:
-		transition_scene=false
-		if current_scene=="world":
-			current_scene="cliff_side"
-		else:
-			current_scene="world"
-
-
 func toggle_day_night():
 	state_time = TimeState.EVENING if state_time == TimeState.MORNING else TimeState.MORNING
 	if state_time == TimeState.EVENING:
 		day_count += 1
+	phase_elapsed = 0.0
 
 ## Tweens a scene's light(s) from their current state to the current
 ## state_time over one full phase (so the "sunset"/"sunrise" color shift

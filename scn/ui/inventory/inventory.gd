@@ -15,10 +15,15 @@ func _ready():
 
 func _on_back_pressed() -> void:
 	get_tree().paused = false
-	if global.current_scene == "cliff_side":
-		get_tree().change_scene_to_file("res://scn/scences/cliff_side.tscn")
-	else:
-		get_tree().change_scene_to_file("res://scn/scences/world.tscn")
+	match global.current_scene:
+		"cliff_side":
+			get_tree().change_scene_to_file("res://scn/scences/cliff_side.tscn")
+		"forest":
+			get_tree().change_scene_to_file("res://scn/scences/forest.tscn")
+		"cliff":
+			get_tree().change_scene_to_file("res://scn/scences/cliff.tscn")
+		_:
+			get_tree().change_scene_to_file("res://scn/scences/world.tscn")
 
 func slot_gui_input(event: InputEvent, slot: SlotClass):
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:

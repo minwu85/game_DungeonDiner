@@ -1,0 +1,63 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scn/scences/cliff.gd" id="1_cliff"]
+[ext_resource type="PackedScene" uid="uid://bsx5o2bhaujvq" path="res://scn/player/player.tscn" id="2_player"]
+[ext_resource type="PackedScene" path="res://scn/ui/hud/corner_menu.tscn" id="3_corner"]
+[ext_resource type="PackedScene" path="res://scn/ui/hud/minimap.tscn" id="4_minimap"]
+[ext_resource type="PackedScene" path="res://scn/ui/hud/scene_fade.tscn" id="5_fade"]
+[ext_resource type="Script" uid="uid://so2b60taf6r2" path="res://scn/scences/manager.gd" id="6_manager"]
+[ext_resource type="PackedScene" uid="uid://y5m7h3q0st16" path="res://scn/ui/pausemenu.tscn" id="7_pausemenu"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_exit"]
+radius = 24.0
+
+[node name="cliff" type="Node2D"]
+script = ExtResource("1_cliff")
+
+[node name="manager" type="Node" parent="."]
+process_mode = 3
+script = ExtResource("6_manager")
+
+[node name="Ground" type="Polygon2D" parent="."]
+color = Color(0.478431, 0.454902, 0.423529, 1)
+polygon = PackedVector2Array(0, 0, 400, 0, 400, 300, 0, 300)
+
+[node name="collisions" type="StaticBody2D" parent="."]
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="collisions"]
+polygon = PackedVector2Array(0, 0, 400, 0, 400, 300, 0, 300)
+
+[node name="player" type="Node2D" parent="."]
+
+[node name="player" parent="player" instance=ExtResource("2_player")]
+position = Vector2(200, 270)
+
+[node name="world_transition_point" type="Area2D" parent="."]
+position = Vector2(200, 280)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="world_transition_point"]
+shape = SubResource("CircleShape2D_exit")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="pausemenu" parent="CanvasLayer" instance=ExtResource("7_pausemenu")]
+process_mode = 2
+
+[node name="corner_menu" parent="CanvasLayer" instance=ExtResource("3_corner")]
+
+[node name="minimap" parent="CanvasLayer" instance=ExtResource("4_minimap")]
+offset_left = 460.0
+offset_top = 2.0
+offset_right = 544.0
+offset_bottom = 58.0
+map_world_origin = Vector2(0, 0)
+map_world_size = Vector2(400, 300)
+
+[node name="scene_fade" parent="CanvasLayer" instance=ExtResource("5_fade")]
+
+[connection signal="body_entered" from="world_transition_point" to="." method="_on_world_transition_point_body_entered"]
+[connection signal="pressed" from="CanvasLayer/pausemenu/Panel/VBoxContainer/Resume" to="manager" method="_on_resume_pressed"]
+[connection signal="pressed" from="CanvasLayer/pausemenu/Panel/VBoxContainer/Inventory" to="manager" method="_on_inventory_pressed"]
+[connection signal="pressed" from="CanvasLayer/pausemenu/Panel/VBoxContainer/Quit" to="manager" method="_on_quit_pressed"]
+
+[editable path="CanvasLayer/pausemenu"]

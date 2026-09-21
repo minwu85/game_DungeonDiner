@@ -1,4 +1,4 @@
-[gd_scene load_steps=30 format=4 uid="uid://d0xiw6o53gdt4"]
+[gd_scene load_steps=32 format=4 uid="uid://d0xiw6o53gdt4"]
 
 [ext_resource type="Texture2D" uid="uid://bid65k2w357eg" path="res://art/Environment/Tilesets/Dungeon_Tiles.png" id="1_hbrdx"]
 [ext_resource type="Script" uid="uid://djrmxckt8wtf" path="res://scn/scences/cliff_side.gd" id="1_ox6gk"]
@@ -16,6 +16,8 @@
 [ext_resource type="Texture2D" uid="uid://55vq5jig1q1m" path="res://art/Weapons/Wood/wood_sword.png" id="14_sword"]
 [ext_resource type="PackedScene" path="res://scn/ui/hud/minimap.tscn" id="15_minimap"]
 [ext_resource type="PackedScene" path="res://scn/ui/hud/scene_fade.tscn" id="16_fade"]
+[ext_resource type="Script" uid="uid://so2b60taf6r2" path="res://scn/scences/manager.gd" id="17_manager"]
+[ext_resource type="PackedScene" uid="uid://y5m7h3q0st16" path="res://scn/ui/pausemenu.tscn" id="18_pausemenu"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_h2r8g"]
 texture = ExtResource("1_hbrdx")
@@ -1601,6 +1603,10 @@ _data = {
 [node name="cliff_side" type="Node2D"]
 script = ExtResource("1_ox6gk")
 
+[node name="manager" type="Node" parent="."]
+process_mode = 3
+script = ExtResource("17_manager")
+
 [node name="Tilmap" type="Node2D" parent="."]
 
 [node name="ground" type="TileMapLayer" parent="Tilmap"]
@@ -1667,6 +1673,9 @@ libraries = {
 &"": SubResource("AnimationLibrary_2dxml")
 }
 
+[node name="pausemenu" parent="CanvasLayer" instance=ExtResource("18_pausemenu")]
+process_mode = 2
+
 [node name="corner_menu" parent="CanvasLayer" instance=ExtResource("13_corner")]
 
 [node name="minimap" parent="CanvasLayer" instance=ExtResource("15_minimap")]
@@ -1674,6 +1683,8 @@ offset_left = 460.0
 offset_top = 2.0
 offset_right = 544.0
 offset_bottom = 58.0
+map_world_origin = Vector2(-35, -8)
+map_world_size = Vector2(526, 260)
 
 [node name="ShopPrompt" type="Label" parent="CanvasLayer"]
 visible = false
@@ -1748,3 +1759,8 @@ text = "Close"
 [connection signal="timeout" from="cliff_side_light/day_night" to="." method="_on_day_night_timeout"]
 [connection signal="pressed" from="CanvasLayer/ShopPanel/BuyButton" to="." method="_on_buy_sword_pressed"]
 [connection signal="pressed" from="CanvasLayer/ShopPanel/CloseButton" to="." method="_on_shop_close_pressed"]
+[connection signal="pressed" from="CanvasLayer/pausemenu/Panel/VBoxContainer/Resume" to="manager" method="_on_resume_pressed"]
+[connection signal="pressed" from="CanvasLayer/pausemenu/Panel/VBoxContainer/Inventory" to="manager" method="_on_inventory_pressed"]
+[connection signal="pressed" from="CanvasLayer/pausemenu/Panel/VBoxContainer/Quit" to="manager" method="_on_quit_pressed"]
+
+[editable path="CanvasLayer/pausemenu"]

@@ -36,6 +36,15 @@ offset_bottom = 56.0
 texture = SubResource("AtlasTexture_hud_portrait")
 stretch_mode = 5
 
+[node name="TimeBar" type="ProgressBar" parent="."]
+offset_left = 4.0
+offset_top = 68.0
+offset_right = 56.0
+offset_bottom = 80.0
+max_value = 150.0
+value = 0.0
+show_percentage = false
+
 [node name="HealthBar" type="TextureProgressBar" parent="."]
 offset_left = 60.0
 offset_top = 4.0

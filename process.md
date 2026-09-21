@@ -156,3 +156,57 @@ Added `scn/ui/hud/scene_fade.tscn` (+ `scene_fade.gd`): a fullscreen black `Colo
 
 ### 8.6 Overworld night (recap from user's request, same fix already in §7.1)
 Confirmed still in place — not re-done, just flagged in case it needed re-verifying alongside this session's other lighting-adjacent HUD work: it didn't need changes.
+
+## 9. Session 5 — gold/stats persistence, Time HUD, Forest and Cliff areas
+
+### 9.1 The actual coin-loss bug
+Reported: gold collected in the overworld was lost when walking into the shop. Root cause: `player.gold` (and, it turns out, health/stamina/XP/level) were plain instance variables on the `player`/`stats` nodes — and **every scene change fully destroys and recreates those nodes** (`get_tree().change_scene_to_file()` tears down the whole tree), so anything not stored somewhere that survives that got silently reset to its default every time the player walked through a door.
+
+Fixed by making `global` (the one autoload that *does* survive scene changes) the source of truth:
+- `global.gd` gained `gold`, `player_health`, `max_player_health`, `stamina`, `max_stamina`, `xp`, `level`.
+- `player.gd`'s `gold` is now a pure proxy property (`get`/`set` both go through `global.gold`) — no local backing field, so it's architecturally impossible for it to drift from the persisted value.
+- `stats.gd` (health/stamina/xp/level's actual owner) now pulls all of those from `global` in `_ready()` and pushes back on every change (`player_health`'s setter, `add_xp()`, `_level_up()`, and every `_process()` tick for stamina). Same bug, same fix, applied consistently rather than patching gold alone and leaving HP/stamina/level to reset on the next shop trip.
+- Added `global.reset_player_stats()`, called from `start_menu.gd`'s Play button — **without this, a fresh new game would inherit the previous run's gold *and*, worse, a from a death (0 HP) would immediately re-trigger `player_death()`** on the new run, since `on_damage_receive()` checks `stats.player_health <= 0`. This was a real bug introduced by the persistence fix itself, caught and closed in the same pass, not a hypothetical.
+
+### 9.2 Time display
+Added a `TimeDisplay` label to the combined HUD panel (`stats.tscn`), below the character portrait, matching the mockup's "Time" box position. It reads `global.day_count`/`global.state_time` directly (updated every frame in `stats.gd:_process()`), so it works correctly in *every* scene — including the two new ones below, which have no day/night light rig of their own.
+
+### 9.3 Generalized scene transitions
+The old transition system was a single hardcoded world↔cliff_side toggle (`global.current_scene`/`finish_changescenes()`), which had no way to express "go to forest" or "go to cliff" without rewriting it. Replaced with:
+- `global.request_scene_transition(scene_path, scene_name, return_marker)` — called by a transition trigger.
+- `global.perform_pending_transition()` — called once a frame from every scene's `_process()`; does the actual `change_scene_to_file()`.
+- `global.returning_from` — set by `return_marker` so `world.gd` knows *which* door to spawn the player at when they come back (shop / forest / cliff each have their own `player_exit_*_posx/posy` in `global.gd`).
+
+`world.gd` and `cliff_side.gd` were both updated to the new system (their behavior is unchanged from the player's perspective - same doors, same spawn points - just no longer hardcoded to a two-scene world). `player.gd`'s `current_camera()` was simplified to treat anything that isn't `"cliff_side"` as "use the outdoor camera," so forest/cliff don't need their own `Camera2D` added to `player.tscn`.
+
+### 9.4 Forest and Cliff areas
+Added `scn/scences/forest.tscn`/`forest.gd` and `cliff.tscn`/`cliff.gd`, matching the diagram (Forest — west of main; Cliff — north of main; Shop — east of main, i.e. the existing `cliff_side.tscn`). `world.tscn` got two new `Area2D` transition triggers (`forest_transition_point` near the west edge, `cliff_transition_point` near the north edge), placed at points already inside the map's existing collision boundary (verified against its polygon coordinates) rather than cutting new doorways into that hand-tuned shape blind, which risked breaking it with no way to test the result.
+
+**These two new areas are intentionally minimal — a flat colored `Polygon2D` ground (green for forest, gray for cliff), a plain rectangular boundary, the player, an exit back to `world.tscn`, and the same HUD (corner menu, minimap, fade-in) as the other scenes. No tile art, props, day/night lighting, or enemies yet.** This was a deliberate scope decision, not an oversight:
+- The existing maps' tile art is stored as opaque packed-byte `tile_map_data` in the `.tscn` — hand-authoring new tile layouts that way, blind, is how map data gets silently corrupted (flagged as a risk back in Session 1 for the exact same reason).
+- The obvious decoration candidates (`Trees/*.png`, `Rocks.png`) turned out to be multi-tile spritesheets, not standalone sprites (confirmed by checking their pixel dimensions), so dropping one in directly as a single `Sprite2D` would show the whole uncut sheet, not one tree/rock - worse than no decoration.
+- Day/night lighting (Sessions 1-2) took real iteration to get right even with just two scenes; wiring two more blind, on top of everything else in this session, wasn't a good risk/reward trade.
+
+Both are fully playable and correctly linked (walk to the map edge → transition → walk back → arrive at the right door) - they're just visually bare. Turning them into real forest/cliff maps means opening the project in the Godot editor and using the TileMap paint tool, which is out of reach here without the ability to run the editor.
+
+## 10. Session 6 — actual screenshots came back: minimap was invisible, HUD text overlapped, shop had no pause menu
+
+This session started from real in-editor screenshots (not mockups), which surfaced two things Session 5 got wrong and couldn't have caught without seeing them run.
+
+### 10.1 The minimap wasn't rendering at all
+The `SubViewport`/`Camera2D`/shared-`World2D` approach from Session 4 produced no visible widget in-game (confirmed by screenshot - not even an empty box where it should be). Rather than keep guessing at the render pipeline blind, replaced it with a fundamentally simpler, lower-risk design: `minimap.tscn` is now a plain `Panel` with a small `ColorRect` "dot" on it, and `minimap.gd` just maps the player's `global_position` into the panel's local rect every frame (`get_tree().get_first_node_in_group("player")`, which `player.gd` already registers into). No SubViewport, no World2D sharing, no camera zoom math - a background box and a dot are about as hard to render *invisibly* as a Godot UI element gets. `map_world_origin`/`map_world_size` (per-scene world-space bounds) replace the old `map_center`/`map_zoom` exports and are set per-instance in all four scenes. This trades "shows the live tilemap" for "reliably shows where you are" - a real downgrade in fidelity, made deliberately in exchange for something that isn't a second blind guess.
+
+### 10.2 HUD text overlap ("Time" running into "Lv 1")
+Confirmed by screenshot: the `TimeDisplay` `Label`'s text ("Day 1 - Day") was wider than its 52px box, and Godot `Label`s don't clip by default - it visually spilled rightward on top of "Lv 1". Per the request, replaced it outright with a `TimeBar` `ProgressBar` (`stats.tscn`/`stats.gd`) showing progress through the current day/night phase, tinted warm yellow by day and cool blue by night - a bar can't overflow its box the way text can, which fixes the overlap as a side effect of fixing the actual ask. Needed `global.phase_elapsed` (seconds into the current phase, reset in `toggle_day_night()`) since nothing previously tracked that.
+
+### 10.3 Pause menu (and Inventory) only existed in the overworld
+`cliff_side.tscn`, `forest.tscn`, and `cliff.tscn` never had a `manager` node or `pausemenu` instance - only `world.tscn` did, from the very first scene. So `X` did nothing in the shop (or forest/cliff), and there was no way to open the inventory from there to check what you'd bought. Added the same `manager`/`pausemenu` pair (and their three button connections) to all three, mirroring `world.tscn`'s exact node structure so `manager.gd` needed no changes. `inventory.gd`'s Back button (`_on_back_pressed`) was also generalized from a `cliff_side`/`world` binary check to a `match` covering all four scenes, since Inventory is now reachable from any of them.
+
+### 10.4 Verifying "can the character actually get a sword"
+Re-audited the buy → inventory chain end to end (`shop.gd` → `cliff_side.gd:_on_buy_sword_pressed` → `global.add_inventory_item` → `inventory.gd:_ready` → `slot.spawn_item` → `item.gd:setup`) line by line rather than re-guessing at it; found no bug in the chain itself. The real blocker was §10.3 - there was no way to reach the inventory screen from the shop to see the result. With that fixed, the flow should now be checkable end-to-end in the editor.
+
+### 10.5 On "I want to actually view it"
+Flagging this directly rather than letting it slide: this environment has no way to run Godot or see its Output/Debugger panel, so nothing in this project can be visually verified from here, ever - only reasoned about from the source. Session 4's SubViewport minimap is a concrete example of that limitation producing a real, shipped bug. If something built in this pass is still wrong, the single most useful thing to paste back is whatever red text appears in Godot's **Output** or **Debugger** panel after running the scene - a script error narrows a bug down immediately, where another round of screenshots mostly narrows down *that* something's wrong, not *why*.
+
+### 10.6 `godot-4-jam-template` (hatmix)
+Looked at this per the request (fetched its README via GitHub, since this environment can't clone/run it). It's a much larger, opinionated jam-starter scaffold: a centralized `UI.go_to(page)`/`show_ui()`/`hide_ui()` autoload with a `UiPage` component system, pre-built settings/controls-remap/credits screens, gamepad+touch support, and CI/export tooling - a different scale of project than this one. Didn't adopt it wholesale (that'd mean rebuilding the menu system from scratch, unrelated to anything reported broken this session), but its core idea - one shared pause/menu system reachable from anywhere, not copy-pasted per scene - is exactly what §10.3 now does, just via this project's existing `manager.gd`/`pausemenu.tscn` rather than a new autoload. Worth revisiting if the menu system grows past what a per-scene `manager` node comfortably handles.

@@ -2,36 +2,30 @@ extends CharacterBody2D
 
 signal health_change_bar(new_health)
 
-enum PlayerState {
-	collect_down, collect_side, collect_up,
-	death_down, death_side, death_up,
-	hit_down, hit_side, hit_up,
-	idle_down, idle_side, idle_up,
-	run_down, run_side, run_up,
-	slice_down, slice_side, slice_up,
-	walk_down, walk_side, walk_up
-}
-
 var enemy_inattack_range = false
 var enemy_attack_cooldown = true
 var player_alive = true
 var attack_ip = false
 var is_collecting = false
 
-var gold: int = 0:
+var gold: int:
+	get: return global.gold
 	set(value):
-		gold = value
+		global.gold = value
 		if stats:
-			stats.set_gold(gold)
-var walk_speed = 1.0
-var run_speed = 2.0
+			stats.set_gold(global.gold)
+
+@export var speed: float = 100.0
+@export var walk_speed: float = 1.0
+@export var run_speed: float = 2.0
+@export var attack_basic: int = 10
+@export var slice_power: int = 2 # slice's attack_multiplier - boosted by the level 5 reward
+@export var enemy_contact_damage: int = 10 # damage taken per hit while in an enemy's attack range
+
 var movement_type = 1 # 1 for walk, 2 for run (used by play_anim)
-var attack_basic=10
 var attack_multiplier=1
 var attack_current
-var slice_power = 2 # slice's attack_multiplier - boosted by the level 5 reward
 
-const speed = 100
 var current_dir = "none"
 
 
@@ -211,7 +205,7 @@ func enemy_attack():
 	if not player_alive:
 		return
 	if enemy_inattack_range and enemy_attack_cooldown:
-		on_damage_receive(10)
+		on_damage_receive(enemy_contact_damage)
 		enemy_attack_cooldown = false
 		$attack_cooldown.start()
 
@@ -298,10 +292,10 @@ func slice_state():
 
 
 
-func current_camera():#camera control for scence change 
-	if global.current_scene=="world":
+func current_camera():#camera control for scence change - forest/cliff reuse the outdoor world_camera
+	if global.current_scene=="cliff_side":
+		$player_camera/world_camera.enabled=false
+		$player_camera/cliffside_camera.enabled=true
+	else:
 		$player_camera/world_camera.enabled=true
 		$player_camera/cliffside_camera.enabled=false
-	elif global.current_scene=="cliff_side":
-			$player_camera/world_camera.enabled=false
-			$player_camera/cliffside_camera.enabled=true

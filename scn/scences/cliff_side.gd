@@ -36,21 +36,14 @@ func _ready():
 	shop_area.player_exited.connect(_on_shop_range_exited)
 
 func _process(delta):
-	change_scene()
+	global.perform_pending_transition()
 	if player_near_shop and not shop_panel.visible and Input.is_action_just_pressed("confirm_order"):
 		shop_panel.visible = true
 		shop_prompt.visible = false
 
 func _on_cliffside_exitpoint_body_entered(body):
 	if body.has_method("player"):
-		global.transition_scene = true
-
-func change_scene():
-	if global.transition_scene == true:
-		if global.current_scene == "cliff_side":
-			get_tree().change_scene_to_file("res://scn/scences/world.tscn")
-			global.finish_changescenes()
-		print("Trying to change from", global.current_scene)
+		global.request_scene_transition("res://scn/scences/world.tscn", "world", "cliff_side")
 
 func _on_shop_range_entered() -> void:
 	player_near_shop = true

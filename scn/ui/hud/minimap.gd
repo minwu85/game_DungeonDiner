@@ -1,21 +1,19 @@
-extends SubViewportContainer
+extends Panel
 
-## World-space point the minimap camera is centered on. Both the overworld
-## and the shop map are roughly this size, so one default works for both -
-## override per-instance if a scene's map is laid out very differently.
-@export var map_center := Vector2(235, 120)
+## World-space rectangle this minimap covers, in the current scene's
+## coordinates. Override per-instance - each scene has a different map.
+@export var map_world_origin := Vector2(-30, -20)
+@export var map_world_size := Vector2(545, 290)
 
-## How zoomed-out the minimap is. Camera2D.zoom > 1 shows MORE of the world.
-## Roughly: map_pixel_width / minimap_pixel_width.
-@export var map_zoom := 4.5
+@onready var player_dot: ColorRect = $PlayerDot
 
-@onready var sub_viewport: SubViewport = $SubViewport
-@onready var camera: Camera2D = $SubViewport/Camera2D
-
-func _ready() -> void:
-	# Share the main game's 2D world so the minimap's camera renders the
-	# real tilemap/player/enemies instead of an empty viewport.
-	sub_viewport.world_2d = get_tree().root.world_2d
-	camera.position = map_center
-	camera.zoom = Vector2(map_zoom, map_zoom)
-	camera.make_current()
+func _process(_delta: float) -> void:
+	var player := get_tree().get_first_node_in_group("player") as Node2D
+	if player == null or not is_instance_valid(player):
+		player_dot.visible = false
+		return
+	player_dot.visible = true
+	var relative: Vector2 = (player.global_position - map_world_origin) / map_world_size
+	relative.x = clamp(relative.x, 0.0, 1.0)
+	relative.y = clamp(relative.y, 0.0, 1.0)
+	player_dot.position = relative * size - player_dot.size / 2.0

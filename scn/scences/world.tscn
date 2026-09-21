@@ -1,4 +1,4 @@
-[gd_scene load_steps=36 format=4 uid="uid://c73xqqw7vgmb7"]
+[gd_scene load_steps=38 format=4 uid="uid://c73xqqw7vgmb7"]
 
 [ext_resource type="Script" uid="uid://dg7i7cdjinwrb" path="res://scn/scences/world.gd" id="1_73xyk"]
 [ext_resource type="Texture2D" uid="uid://b05txwfbvoml" path="res://art/Environment/Props/Static/Trees/Model_02/Size_03.png" id="1_hfnbe"]
@@ -1906,6 +1906,12 @@ sources/8 = SubResource("TileSetAtlasSource_rtt20")
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_d4bdn"]
 size = Vector2(22, 37)
 
+[sub_resource type="CircleShape2D" id="CircleShape2D_forest_gate"]
+radius = 20.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_cliff_gate"]
+radius = 20.0
+
 [sub_resource type="Animation" id="Animation_0y1m3"]
 length = 0.001
 tracks/0/type = "value"
@@ -2009,6 +2015,18 @@ position = Vector2(-148, -68)
 position = Vector2(475, 183.5)
 shape = SubResource("RectangleShape2D_d4bdn")
 
+[node name="forest_transition_point" type="Area2D" parent="transition"]
+position = Vector2(-163, 52)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="transition/forest_transition_point"]
+shape = SubResource("CircleShape2D_forest_gate")
+
+[node name="cliff_transition_point" type="Area2D" parent="transition"]
+position = Vector2(92, -53)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="transition/cliff_transition_point"]
+shape = SubResource("CircleShape2D_cliff_gate")
+
 [node name="collectibles" type="Node2D" parent="."]
 
 [node name="gold" parent="collectibles" instance=ExtResource("15_waw5s")]
@@ -2054,10 +2072,14 @@ offset_left = 460.0
 offset_top = 2.0
 offset_right = 544.0
 offset_bottom = 58.0
+map_world_origin = Vector2(-31, -19)
+map_world_size = Vector2(544, 287)
 
 [node name="scene_fade" parent="CanvasLayer" instance=ExtResource("21_fade")]
 
 [connection signal="body_entered" from="transition/cliffside_transition_point" to="." method="_on_cliffside_transition_point_body_entered"]
+[connection signal="body_entered" from="transition/forest_transition_point" to="." method="_on_forest_transition_point_body_entered"]
+[connection signal="body_entered" from="transition/cliff_transition_point" to="." method="_on_cliff_transition_point_body_entered"]
 [connection signal="timeout" from="light/day_night" to="." method="_on_day_night_timeout"]
 [connection signal="pressed" from="CanvasLayer/pausemenu/Panel/VBoxContainer/Resume" to="manager" method="_on_resume_pressed"]
 [connection signal="pressed" from="CanvasLayer/pausemenu/Panel/VBoxContainer/Inventory" to="manager" method="_on_inventory_pressed"]
