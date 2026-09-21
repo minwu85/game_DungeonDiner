@@ -15,11 +15,6 @@ func _ready():
 	default_style.texture = default_tex
 	empty_style.texture = empty_tex
 
-	if randi() % 2 == 0:
-		item = ItemClass.instantiate()
-		item.position = Vector2.ZERO
-		add_child(item)
-
 	refresh_style()
 
 func refresh_style():
@@ -42,3 +37,10 @@ func put_into_slot(new_item: Node2D):
 	item.position = Vector2.ZERO
 	add_child(item)  # We assume item is already removed from any previous parent
 	refresh_style()
+
+# Convenience for real pickups/shop purchases: builds a fresh item node
+# with the given name/icon and drops it straight into this slot.
+func spawn_item(item_name: String, icon: Texture2D) -> void:
+	var new_item = ItemClass.instantiate()
+	new_item.setup(item_name, icon)
+	put_into_slot(new_item)

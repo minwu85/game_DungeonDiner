@@ -1,6 +1,7 @@
-[gd_scene load_steps=10 format=3 uid="uid://bathd1nlvrgr3"]
+[gd_scene load_steps=11 format=3 uid="uid://bathd1nlvrgr3"]
 
 [ext_resource type="Texture2D" uid="uid://bbsplkof5alfh" path="res://art/art2/build/shop_anim.png" id="1_7jpyn"]
+[ext_resource type="Script" path="res://scn/build/shop.gd" id="2_shop"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_63aqb"]
 atlas = ExtResource("1_7jpyn")
@@ -56,6 +57,7 @@ animations = [{
 radius = 46.0109
 
 [node name="shop" type="Area2D"]
+script = ExtResource("2_shop")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 sprite_frames = SubResource("SpriteFrames_j4a58")
@@ -67,3 +69,6 @@ frame_progress = 0.676678
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(0, 18)
 shape = SubResource("CircleShape2D_jrjl8")
+
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]
+[connection signal="body_exited" from="." to="." method="_on_body_exited"]

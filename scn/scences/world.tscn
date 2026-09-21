@@ -1,4 +1,4 @@
-[gd_scene load_steps=34 format=4 uid="uid://c73xqqw7vgmb7"]
+[gd_scene load_steps=36 format=4 uid="uid://c73xqqw7vgmb7"]
 
 [ext_resource type="Script" uid="uid://dg7i7cdjinwrb" path="res://scn/scences/world.gd" id="1_73xyk"]
 [ext_resource type="Texture2D" uid="uid://b05txwfbvoml" path="res://art/Environment/Props/Static/Trees/Model_02/Size_03.png" id="1_hfnbe"]
@@ -16,6 +16,8 @@
 [ext_resource type="PackedScene" uid="uid://dpwpdale33xq6" path="res://scn/collectribles/gold.tscn" id="15_waw5s"]
 [ext_resource type="PackedScene" uid="uid://y5m7h3q0st16" path="res://scn/ui/pausemenu.tscn" id="18_0f8b3"]
 [ext_resource type="PackedScene" path="res://scn/ui/hud/corner_menu.tscn" id="19_corner"]
+[ext_resource type="PackedScene" path="res://scn/ui/hud/minimap.tscn" id="20_minimap"]
+[ext_resource type="PackedScene" path="res://scn/ui/hud/scene_fade.tscn" id="21_fade"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_nxund"]
 texture = ExtResource("7_0y1m3")
@@ -2013,7 +2015,6 @@ shape = SubResource("RectangleShape2D_d4bdn")
 position = Vector2(199, 53)
 
 [node name="light" type="Node2D" parent="."]
-visible = false
 
 [node name="sun" type="DirectionalLight2D" parent="light"]
 energy = 0.1
@@ -2047,6 +2048,14 @@ libraries = {
 process_mode = 2
 
 [node name="corner_menu" parent="CanvasLayer" instance=ExtResource("19_corner")]
+
+[node name="minimap" parent="CanvasLayer" instance=ExtResource("20_minimap")]
+offset_left = 460.0
+offset_top = 2.0
+offset_right = 544.0
+offset_bottom = 58.0
+
+[node name="scene_fade" parent="CanvasLayer" instance=ExtResource("21_fade")]
 
 [connection signal="body_entered" from="transition/cliffside_transition_point" to="." method="_on_cliffside_transition_point_body_entered"]
 [connection signal="timeout" from="light/day_night" to="." method="_on_day_night_timeout"]

@@ -8,10 +8,8 @@ z_index = 1
 script = ExtResource("1_7bkvp")
 
 [node name="TextureReact" type="TextureRect" parent="."]
-offset_right = 10.0
-offset_bottom = 41.0
-rotation = 0.261799
-scale = Vector2(0.75, 0.75)
+offset_right = 24.0
+offset_bottom = 24.0
 mouse_filter = 2
 texture = ExtResource("1_uda4w")
-stretch_mode = 3
+stretch_mode = 5

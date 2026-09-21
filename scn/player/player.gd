@@ -29,6 +29,7 @@ var movement_type = 1 # 1 for walk, 2 for run (used by play_anim)
 var attack_basic=10
 var attack_multiplier=1
 var attack_current
+var slice_power = 2 # slice's attack_multiplier - boosted by the level 5 reward
 
 const speed = 100
 var current_dir = "none"
@@ -40,9 +41,23 @@ var current_dir = "none"
 
 
 func _ready():
+	add_to_group("player")
 	animPlayer.play("idle_down")
 	attack_current=attack_basic*attack_multiplier
+	stats.leveled_up.connect(_on_leveled_up)
 	#connect("health_change_bar", stats, "_on_player_health_change_bar")
+
+func gain_xp(amount: int) -> void:
+	stats.add_xp(amount)
+
+func _on_leveled_up(new_level: int) -> void:
+	match new_level:
+		3:
+			attack_basic += 5
+		5:
+			slice_power = 3
+	attack_current = attack_basic * attack_multiplier
+	print("Leveled up to ", new_level)
 
 func _physics_process(delta):
 
@@ -174,7 +189,6 @@ func player():
 func _on_player_hitbox_body_entered(body):#player detected attack
 	if body.has_method("enemy"):
 		enemy_inattack_range = true
-		emit_signal("attack", attack_current)
 		
 func _on_player_hitbox_body_exited(body: Node2D) -> void:
 	if body.has_method("enemy"):
@@ -207,7 +221,8 @@ func _on_attack_cooldown_timeout():
 func attack():
 	var dir = current_dir
 	attack_multiplier=1
-	
+	attack_current = attack_basic * attack_multiplier
+
 	if Input.is_action_just_pressed("attack") and not attack_ip:
 		global.player_current_attack = true
 		attack_ip = true
@@ -248,10 +263,12 @@ func collect_state():#player collect anim
 
 
 func slice_state():
-	attack_multiplier=2
-	#var slice_damage = 20  # damage dealt when using slice
 	if attack_ip or is_collecting:
 		return
+	# Computed locally (not via attack_current) because attack() resets
+	# attack_current back to the base value every physics frame while we
+	# wait below for the slice animation to finish.
+	var slice_damage = attack_basic * slice_power
 	global.player_current_slice = true
 	attack_ip = true
 	stats.stamina_cost=stats.slice_cost #slice_cost=20
@@ -274,7 +291,7 @@ func slice_state():
 	if player_alive:
 		for body in $player_hitbox.get_overlapping_bodies():
 			if body.has_method("receive_damage"):
-				body.receive_damage(attack_current) # Damage is sent to enemy
+				body.receive_damage(slice_damage) # Damage is sent to enemy
 				print("Slice hit enemy: ", body.name)
 	attack_ip = false
 	attack_multiplier = 1 #reset back to 1

@@ -6,8 +6,19 @@ const SlotClass = preload("res://scn/ui/inventory/slot.gd")
 var holding_item: Node2D = null
 
 func _ready():
-	for inv_slot in inventory_slots.get_children():
+	var slots = inventory_slots.get_children()
+	for i in range(min(slots.size(), global.inventory_items.size())):
+		var data = global.inventory_items[i]
+		slots[i].spawn_item(data["name"], load(data["icon"]))
+	for inv_slot in slots:
 		inv_slot.gui_input.connect(slot_gui_input.bind(inv_slot))
+
+func _on_back_pressed() -> void:
+	get_tree().paused = false
+	if global.current_scene == "cliff_side":
+		get_tree().change_scene_to_file("res://scn/scences/cliff_side.tscn")
+	else:
+		get_tree().change_scene_to_file("res://scn/scences/world.tscn")
 
 func slot_gui_input(event: InputEvent, slot: SlotClass):
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:

@@ -33,6 +33,8 @@ var speed = 40 # Enemy movement speed
 var player_chase = false # Whether the enemy should chase the player
 var player = null # Reference to the player node
 
+@export var xp_reward: int = 20
+
 # Enemy health and status flags
 
 var player_inattack_zone = false
@@ -42,16 +44,9 @@ var alive = true
 func _ready():
 	$enemy_health.connect("on_death", Callable(self, "death_state"))
 
-	var player = get_node_or_null("../player")
-	if player:
-		player.connect("player_attack", Callable($enemy_health, "receive_damage"))
-
 
 
 func _physics_process(delta):
-	if not alive:
-		death_state()
-		
 	if alive:
 		if can_take_damage and (global.player_current_attack or global.player_current_slice) and is_player_in_attack_range():
 			enemy_health.receive_damage(10)
@@ -100,6 +95,9 @@ func _on_enemy_hitbox_body_exited(body):
 
 func death_state():
 	alive = false
+	var xp_target = player if player else get_tree().get_first_node_in_group("player")
+	if xp_target and xp_target.has_method("gain_xp"):
+		xp_target.gain_xp(xp_reward)
 	animEn.play("ske_death")
 	await animEn.animation_finished
 	queue_free()

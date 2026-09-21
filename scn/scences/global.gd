@@ -13,6 +13,19 @@ var player_start_posy = 60
 
 var game_first_loadin = true
 
+## Minimal persistent inventory (survives scene changes, unlike the
+## inventory screen's own slot nodes). Each entry is {"name": String, "icon": res:// path}.
+var inventory_items: Array = []
+const INVENTORY_CAPACITY := 16
+
+## Adds an item if there's room. Returns false (and adds nothing) if the
+## inventory is full.
+func add_inventory_item(item_name: String, icon_path: String) -> bool:
+	if inventory_items.size() >= INVENTORY_CAPACITY:
+		return false
+	inventory_items.append({"name": item_name, "icon": icon_path})
+	return true
+
 
 
 enum TimeState {

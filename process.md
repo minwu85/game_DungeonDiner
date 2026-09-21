@@ -95,3 +95,64 @@ Added `scn/ui/hud/corner_menu.tscn` (+ `corner_menu.gd`): a small always-on-scre
 
 ### 6.4 Not implemented
 The large "Simple RPG Ideas" brainstorm (XP/levels, equipment, quests, cooking, NPCs, save system, new areas, etc.) is a substantial expansion, not a bug fix or small feature — it wasn't implemented in this pass. It's a good roadmap; if you want to start on a piece of it, the recommended first slice from that doc (XP/levels → potions → basic shop buying) is a reasonable place to begin, and it builds directly on the gold/inventory/shop plumbing that already exists.
+
+## 7. Session 3 — overworld night, inventory cleanup, character portrait, XP/levels
+
+### 7.1 Overworld now actually gets dark at night
+`world.tscn`'s `light` node had `visible = false` hardcoded, so the day/night tween from Session 1 was running the whole time but never visible outdoors — only the shop interior ever darkened. Removed that flag. The overworld now darkens/lightens on the same cycle as the shop; the player's own `PointLight2D` (`player_light`) still lights their immediate surroundings the way it did in the original "dark" screenshot.
+
+### 7.2 Inventory: removed the random junk-item generator
+`slot.gd`'s `_ready()` had a `if randi() % 2 == 0: item = ItemClass.instantiate(); add_child(item)` — every time the inventory screen opened, each of the 16 slots had a *coin-flip* chance of spawning a placeholder item. `item.gd` then *also* randomly picked between `wood_sword.png`/`wood_axe.png` on its own `_ready()`. On top of that, `item.tscn`'s icon (`TextureReact`) had a baked-in `rotation = 0.261799` (15°) and a skewed `10x41` box, so populated slots showed random, tilted, differently-shaped icons every time you opened the screen — that's the screenshot.
+
+Fixed:
+- `slot.gd` no longer spawns anything randomly; slots start empty and stay that way until something real is put into them (`put_into_slot`, or the new `spawn_item(name, icon)` helper for a future pickup/shop system to call).
+- `item.gd` no longer randomly swaps its own texture; it now has a `setup(name, icon)` method so a real item can be created with a specific icon/name.
+- `item.tscn`'s icon box is now a clean, unrotated `24x24` square with `stretch_mode = KEEP_ASPECT_CENTERED`.
+- Net effect: the inventory now opens **empty** (there's no real pickup-to-inventory system wired up yet — only gold, which is a separate counter, not an item), which is the honest/correct state rather than showing fake random junk. Wiring real items into it is future work (see the "Item pickup" idea from Session 1's roadmap).
+
+### 7.3 Character portrait
+Added a static portrait of the player (`Idle_Down-Sheet.png` frame 0, the same art already used for the player's idle animation) to the empty left two-thirds of the inventory panel (`inventory.tscn`, new `CharacterPortrait` node). It's a plain snapshot, not a live sprite — reusing the player's full animated `SpriteFrames` resource would mean duplicating a very large embedded resource across scene files, which wasn't worth the risk for a portrait.
+
+### 7.4 Player progression (XP & levels)
+Implemented the 5-level table from the brainstorm doc, split across `stats.gd` (owns `xp`/`level`/the XP table, emits `leveled_up(new_level)`) and `player.gd` (listens for `leveled_up` to apply the two rewards that aren't pure stats):
+
+| Level | XP required | Reward |
+|---|---|---|
+| 1 | 0 | starting attributes |
+| 2 | 100 | +20 max HP (also fully heals) |
+| 3 | 250 | +5 attack damage (`attack_basic`) |
+| 4 | 450 | +20 max stamina |
+| 5 | 700 | slice attack multiplier goes from 2x to 3x |
+
+- Enemies award XP on death (`enemy.gd` now has `@export var xp_reward: int = 20`); the player exposes `gain_xp(amount)` which forwards to `stats.add_xp()`.
+- A small "Lv N" label + XP bar was added to `stats.tscn` next to the gold counter.
+- **Bugs fixed along the way, found while wiring this up:**
+  - `enemy.gd`'s `_ready()` connected a signal called `"player_attack"` on the player that never existed (player.gd has no such signal) — this errored on every enemy spawn and did nothing. Removed; actual attack damage was already being dealt correctly elsewhere, via the `global.player_current_attack`/`player_current_slice` flags checked in `enemy.gd`'s `_physics_process`.
+  - `player.gd`'s `_on_player_hitbox_body_entered` emitted a signal called `"attack"` that was never declared — errored on every hitbox overlap, and nothing listened to it anyway. Removed.
+  - `enemy.gd`'s `_physics_process` had `if not alive: death_state()`, but `death_state()` is the *only* place that sets `alive = false` and it `await`s an animation before `queue_free()`-ing — so once an enemy died, this line would re-invoke `death_state()` (and, now, re-award XP) on every physics frame until the animation finished. Removed the redundant call; `death_state()` is already triggered exactly once via `enemy_health`'s `on_death` signal.
+  - Slice damage wasn't actually using the slice multiplier: `slice_state()` set `attack_multiplier` but the shared `attack_current` it read from was being unconditionally reset back to base by `attack()`, which runs every physics frame — including the frames spent `await`ing the slice animation. Slice damage is now computed into a local variable at the moment the slice starts, so it isn't clobbered, and so the level-5 reward (2x → 3x) actually does something.
+
+## 8. Session 4 — combined HUD, minimap, fade-in, inventory back button, shop buying
+
+The mockups in this session (a combined stat panel, an empty-slot inventory with a portrait, and a "Character:" prompt near the shop) were wireframes for direction, not screenshots of a running state — treated as a spec to build toward, not a bug report.
+
+### 8.1 Combined HUD panel
+`stats.tscn` previously had the health bar, stamina bar, gold counter and XP bar floating independently in the top-left corner. Added a `Background` `Panel` behind all of them and a `CharacterPortrait` (same idle-sprite-frame technique as the inventory portrait) on the left, with the four stat elements shifted right to sit beside it — one grouped panel instead of four loose widgets, matching the mockup's composition. It reuses the project's default UI theme for the background rather than a custom nine-patch border texture, since guessing patch margins on an unfamiliar texture blind (no way to preview here) risked looking worse than the plain version.
+
+### 8.2 Minimap
+Added `scn/ui/hud/minimap.tscn` (+ `minimap.gd`): a `SubViewportContainer`/`SubViewport`/`Camera2D` that shares the main game's `World2D` (`sub_viewport.world_2d = get_tree().root.world_2d`), so its camera renders the *actual* live tilemap/player/enemies rather than a duplicate or a static image — the player shows up on it automatically, with no separate "player dot" needed. Positioned top-right in both `world.tscn` and `cliff_side.tscn`'s `CanvasLayer`, left of the Home/Help buttons. `map_center` and `map_zoom` are `@export`ed on the script (defaults `(235, 120)` and `4.5`, estimated from both maps' collision-polygon bounds, which are both roughly 520-540px wide) — this is the one piece in this session most likely to need a quick in-editor nudge, since camera framing can't be checked without running Godot.
+
+### 8.3 Dark-to-light entry fade
+Added `scn/ui/hud/scene_fade.tscn` (+ `scene_fade.gd`): a fullscreen black `ColorRect` that tweens its alpha to 0 over 1 second on `_ready()`, then hides itself. Instanced as the *last* child of `CanvasLayer` in both `world.tscn` and `cliff_side.tscn` (so it draws on top of everything else during the fade). Every scene entry now fades in from black, not just the overworld specifically — added to both scenes for consistency rather than singling one out, since the underlying mechanism is identical either way.
+
+### 8.4 Inventory back button
+`inventory.tscn` had no way to leave — opening it (from the pause menu) calls `change_scene_to_file`, which fully replaces whatever scene was running, and nothing sent the player back. Added a `BackButton` + `inventory.gd:_on_back_pressed()`, which returns to `cliff_side.tscn` or `world.tscn` based on `global.current_scene`. This was a real dead-end bug, not just a missing nicety.
+
+### 8.5 Shop dialogue + buying a Wooden Sword
+- `shop.tscn`'s `Area2D` had a collision shape but no script — added `shop.gd`, emitting `player_entered`/`player_exited` when the player walks in/out of it (same `body.has_method("player")` pattern used elsewhere in the project).
+- `cliff_side.gd` listens for those and shows a "Press Z to shop" prompt (`Z` = the existing `confirm_order` action) when in range; pressing it opens a `ShopPanel` ("Character: Shopkeeper" + a Wooden Sword row: icon, name, "1 Gold", **Buy**) with a **Close** button.
+- Buying checks `player.gold`, and on success deducts 1 gold and calls a new `global.add_inventory_item(name, icon_path)`.
+- **Why a new `global.inventory_items` array**: the inventory screen's 16 `slot` nodes are local to `inventory.tscn`, which — per §8.4 — gets fully torn down and replaced on every scene change; there was nothing for a purchased item to persist *into*. `global` (an autoload) is the one thing that survives scene changes, so it now holds the source-of-truth item list (`{"name", "icon"}` dicts, capped at 16), and `inventory.gd`'s `_ready()` populates its slots from it via the `slot.spawn_item()` helper added in Session 3. Rearranging items within the inventory UI (drag between slots) still doesn't write back to `global.inventory_items` — only acquiring items does — which is an acceptable gap for a first version but worth knowing if slot order ever needs to persist.
+
+### 8.6 Overworld night (recap from user's request, same fix already in §7.1)
+Confirmed still in place — not re-done, just flagged in case it needed re-verifying alongside this session's other lighting-adjacent HUD work: it didn't need changes.

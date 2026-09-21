@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://dw4bd4ji2yc74"]
+[gd_scene load_steps=11 format=3 uid="uid://dw4bd4ji2yc74"]
 
 [ext_resource type="Texture2D" uid="uid://cmdcrw7dgarb4" path="res://art/art2/sprites/Sprite-0003.png" id="1_a63hv"]
 [ext_resource type="Script" uid="uid://cf3x4vkj1jxg4" path="res://scn/player/stats.gd" id="1_lake2"]
@@ -7,19 +7,40 @@
 [ext_resource type="Texture2D" uid="uid://d0ngvwe3t7ecs" path="res://art/art2/sprites/energy_bar_empty.png" id="5_j4kmg"]
 [ext_resource type="Texture2D" uid="uid://cihgqljqux86o" path="res://art/art2/sprites/energy_bar_progress.png" id="6_jk587"]
 [ext_resource type="Texture2D" uid="uid://df2wqtc8fxc6l" path="res://art/art2/MonedaD.png" id="7_coin"]
+[ext_resource type="Texture2D" uid="uid://tk24duotp1xv" path="res://art/Entities/Characters/Body_A/Animations/Idle_Base/Idle_Down-Sheet.png" id="8_portrait"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_coin_icon"]
 atlas = ExtResource("7_coin")
 region = Rect2(0, 0, 16, 16)
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_hud_portrait"]
+atlas = ExtResource("8_portrait")
+region = Rect2(0, 0, 64, 64)
+
 [node name="stats" type="CanvasLayer"]
 script = ExtResource("1_lake2")
 
+[node name="Background" type="Panel" parent="."]
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 176.0
+offset_bottom = 90.0
+modulate = Color(1, 1, 1, 0.7)
+mouse_filter = 2
+
+[node name="CharacterPortrait" type="TextureRect" parent="."]
+offset_left = 4.0
+offset_top = 4.0
+offset_right = 56.0
+offset_bottom = 56.0
+texture = SubResource("AtlasTexture_hud_portrait")
+stretch_mode = 5
+
 [node name="HealthBar" type="TextureProgressBar" parent="."]
-offset_left = 3.0
-offset_top = 2.0
-offset_right = 173.0
-offset_bottom = 27.0
+offset_left = 60.0
+offset_top = 4.0
+offset_right = 170.0
+offset_bottom = 26.0
 value = 50.0
 nine_patch_stretch = true
 texture_under = ExtResource("1_a63hv")
@@ -30,10 +51,10 @@ tint_progress = Color(0.965649, 0, 0.1388, 1)
 
 [node name="stamina" type="TextureProgressBar" parent="."]
 modulate = Color(1, 1, 1, 0.647059)
-offset_left = 14.0
-offset_top = 29.0
-offset_right = 154.0
-offset_bottom = 39.0
+offset_left = 71.0
+offset_top = 28.0
+offset_right = 151.0
+offset_bottom = 38.0
 value = 50.0
 nine_patch_stretch = true
 texture_under = ExtResource("5_j4kmg")
@@ -41,10 +62,10 @@ texture_progress = ExtResource("6_jk587")
 tint_progress = Color(1, 1, 0.678431, 1)
 
 [node name="GoldDisplay" type="HBoxContainer" parent="."]
-offset_left = 8.0
-offset_top = 44.0
-offset_right = 100.0
-offset_bottom = 64.0
+offset_left = 60.0
+offset_top = 42.0
+offset_right = 152.0
+offset_bottom = 62.0
 theme_override_constants/separation = 4
 
 [node name="CoinIcon" type="TextureRect" parent="GoldDisplay"]
@@ -58,3 +79,23 @@ stretch_mode = 1
 layout_mode = 2
 size_flags_vertical = 4
 text = "0"
+
+[node name="LevelDisplay" type="HBoxContainer" parent="."]
+offset_left = 60.0
+offset_top = 64.0
+offset_right = 168.0
+offset_bottom = 84.0
+theme_override_constants/separation = 6
+
+[node name="LevelLabel" type="Label" parent="LevelDisplay"]
+layout_mode = 2
+size_flags_vertical = 4
+text = "Lv 1"
+
+[node name="XPBar" type="ProgressBar" parent="LevelDisplay"]
+custom_minimum_size = Vector2(64, 10)
+layout_mode = 2
+size_flags_vertical = 4
+max_value = 100.0
+value = 0.0
+show_percentage = false

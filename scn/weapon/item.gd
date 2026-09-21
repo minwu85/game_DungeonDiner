@@ -1,8 +1,9 @@
 extends Node2D
 
+var item_name := "Wooden Sword"
 
-func _ready( ):
-	if randi() % 2 == 0:
-		$TextureReact.texture = load("res://art/Weapons/Wood/wood_sword.png")
-	else:
-		$TextureReact.texture = load("res://art/Weapons/Wood/wood_axe.png")
+# Called by inventory/pickup code to turn this generic item node into a
+# specific item. Leaves the scene's default icon/name if never called.
+func setup(name: String, icon: Texture2D) -> void:
+	item_name = name
+	$TextureReact.texture = icon
