@@ -1,4 +1,4 @@
-[gd_scene load_steps=26 format=4 uid="uid://d0xiw6o53gdt4"]
+[gd_scene load_steps=27 format=4 uid="uid://d0xiw6o53gdt4"]
 
 [ext_resource type="Texture2D" uid="uid://bid65k2w357eg" path="res://art/Environment/Tilesets/Dungeon_Tiles.png" id="1_hbrdx"]
 [ext_resource type="Script" uid="uid://djrmxckt8wtf" path="res://scn/scences/cliff_side.gd" id="1_ox6gk"]
@@ -12,6 +12,7 @@
 [ext_resource type="Texture2D" uid="uid://cmdcrw7dgarb4" path="res://art/art2/sprites/Sprite-0003.png" id="10_e5hm1"]
 [ext_resource type="Texture2D" uid="uid://crln133ih231e" path="res://art/art2/sprites/Sprite-0001.png" id="11_qbtqr"]
 [ext_resource type="Texture2D" uid="uid://djmk3eps6mmod" path="res://art/art2/sprites/Sprite-0002.png" id="12_0w8iv"]
+[ext_resource type="PackedScene" path="res://scn/ui/hud/corner_menu.tscn" id="13_corner"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_h2r8g"]
 texture = ExtResource("1_hbrdx")
@@ -1641,7 +1642,7 @@ color = Color(0.991831, 0.86887, 0.724311, 1)
 texture = ExtResource("9_h4q5s")
 
 [node name="day_night" type="Timer" parent="cliff_side_light"]
-wait_time = 30.0
+wait_time = 150.0
 autostart = true
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
@@ -1662,6 +1663,8 @@ root_node = NodePath("../Day")
 libraries = {
 &"": SubResource("AnimationLibrary_2dxml")
 }
+
+[node name="corner_menu" parent="CanvasLayer" instance=ExtResource("13_corner")]
 
 [connection signal="body_entered" from="cliffside_exitpoint" to="." method="_on_cliffside_exitpoint_body_entered"]
 [connection signal="timeout" from="cliff_side_light/day_night" to="." method="_on_day_night_timeout"]

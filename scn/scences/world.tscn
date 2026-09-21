@@ -1,4 +1,4 @@
-[gd_scene load_steps=33 format=4 uid="uid://c73xqqw7vgmb7"]
+[gd_scene load_steps=34 format=4 uid="uid://c73xqqw7vgmb7"]
 
 [ext_resource type="Script" uid="uid://dg7i7cdjinwrb" path="res://scn/scences/world.gd" id="1_73xyk"]
 [ext_resource type="Texture2D" uid="uid://b05txwfbvoml" path="res://art/Environment/Props/Static/Trees/Model_02/Size_03.png" id="1_hfnbe"]
@@ -15,6 +15,7 @@
 [ext_resource type="PackedScene" uid="uid://bxya8uarmfgru" path="res://scn/enemy/enemy.tscn" id="11_d4bdn"]
 [ext_resource type="PackedScene" uid="uid://dpwpdale33xq6" path="res://scn/collectribles/gold.tscn" id="15_waw5s"]
 [ext_resource type="PackedScene" uid="uid://y5m7h3q0st16" path="res://scn/ui/pausemenu.tscn" id="18_0f8b3"]
+[ext_resource type="PackedScene" path="res://scn/ui/hud/corner_menu.tscn" id="19_corner"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_nxund"]
 texture = ExtResource("7_0y1m3")
@@ -2020,7 +2021,7 @@ blend_mode = 1
 range_layer_min = -1
 
 [node name="day_night" type="Timer" parent="light"]
-wait_time = 30.0
+wait_time = 150.0
 autostart = true
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
@@ -2044,6 +2045,8 @@ libraries = {
 
 [node name="pausemenu" parent="CanvasLayer" instance=ExtResource("18_0f8b3")]
 process_mode = 2
+
+[node name="corner_menu" parent="CanvasLayer" instance=ExtResource("19_corner")]
 
 [connection signal="body_entered" from="transition/cliffside_transition_point" to="." method="_on_cliffside_transition_point_body_entered"]
 [connection signal="timeout" from="light/day_night" to="." method="_on_day_night_timeout"]

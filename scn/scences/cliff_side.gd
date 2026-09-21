@@ -14,6 +14,7 @@ func _ready():
 	apply_light_state_instant()
 
 	if day_night_timer:
+		day_night_timer.wait_time = global.phase_duration_seconds()
 		day_night_timer.start()
 
 	set_day_text()
@@ -45,10 +46,14 @@ func _on_day_night_timeout() -> void:
 func apply_light_state_instant():
 	match global.state_time:
 		global.TimeState.MORNING:
-			if time_light: time_light.energy = 0.1
+			if time_light:
+				time_light.energy = 0.1
+				time_light.color = global.DAY_LIGHT_COLOR
 			if point_light: point_light.energy = 0
 		global.TimeState.EVENING:
-			if time_light: time_light.energy = 1.0
+			if time_light:
+				time_light.energy = 1.0
+				time_light.color = global.NIGHT_LIGHT_COLOR
 			if point_light: point_light.energy = 1.5
 
 func set_day_text():

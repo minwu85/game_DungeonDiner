@@ -20,6 +20,7 @@ func _ready():
 
 	##light change control
 	if day_night_timer:
+		day_night_timer.wait_time = global.phase_duration_seconds()
 		day_night_timer.start()
 	global.apply_light_state(time_light)
 	set_day_ui()

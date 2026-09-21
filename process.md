@@ -81,3 +81,17 @@ Both `world.tscn` and `cliff_side.tscn` also carried invisible, unused `HP`/`Gol
 - The `PlayerState`/`enemy.PlayerState` enums are declared but largely unused (most state is tracked with loose booleans instead) — either wire the state machine through them or drop the enums to reduce confusion.
 - Add a shadow/occlusion pass (`LightOccluder2D` already exists on the player) to the shop's walls so the point light actually casts shop-shaped shadows, since `shadow_enabled = true` is already set on the shop's sun light.
 - Consider unifying `world.gd` and `cliff_side.gd` further — after this pass they already share `global.apply_light_state`/`toggle_day_night`; the remaining per-scene code (spawn positioning, transition triggers) is genuinely scene-specific and probably not worth merging further.
+
+## 6. Session 2 — configurable day length, sunset colors, Home/Help HUD
+
+### 6.1 "5 minutes is a day"
+`global.gd` now exposes `day_length_minutes` (default `5.0`) and `phase_duration_seconds()` (half of that, in seconds — one call is one phase, either the day half or the night half). Both `world.gd` and `cliff_side.gd` set their `day_night` Timer's `wait_time` from this at `_ready()`, instead of the scene file's hardcoded value, so both scenes always agree and are tunable from one place. With the default, a full day→night→day cycle takes 5 real minutes, and `global.day_count` (and the "Day N" label) advances by one every time night falls (every 2.5 minutes).
+
+### 6.2 Sunset/sunrise color, not just brightness
+Previously the day/night transition only tweened `DirectionalLight2D.energy` (brightness). `global.apply_light_state()` now also tweens the light's `color` through a sunset/sunrise hue partway through each transition, over the full phase duration (so it's a slow, continuous shift rather than a snap). Because the "sun" light uses **Subtract** blend mode, the colors are chosen for what they *remove*, not what they add: `SUNSET_LIGHT_COLOR` (cool/cyan) leaves a warm orange glow behind when subtracted, and `NIGHT_LIGHT_COLOR` (warm/gold) leaves a cool blue tint behind — see the comment above the constants in `global.gd`. This is a reasonable, standard trick for subtractive 2D lighting but wasn't visually verified in the editor (no Godot CLI available in this environment) — if the hues look off, the three `*_LIGHT_COLOR` constants at the top of `global.gd` are the only place to tune.
+
+### 6.3 Home / Help buttons (top-right)
+Added `scn/ui/hud/corner_menu.tscn` (+ `corner_menu.gd`): a small always-on-screen `Control` with a **Home** button (returns to the start menu, same as the pause menu's Quit) and a **Help** button (toggles an instructions panel listing controls: WASD/arrows to move, Shift to run, Space to attack, J to slice, X to pause). It's instanced once into each scene's existing `CanvasLayer` (`world.tscn` and `cliff_side.tscn`), the same way `pausemenu` already was, so it didn't need duplicating into two separate implementations.
+
+### 6.4 Not implemented
+The large "Simple RPG Ideas" brainstorm (XP/levels, equipment, quests, cooking, NPCs, save system, new areas, etc.) is a substantial expansion, not a bug fix or small feature — it wasn't implemented in this pass. It's a good roadmap; if you want to start on a piece of it, the recommended first slice from that doc (XP/levels → potions → basic shop buying) is a reasonable place to begin, and it builds directly on the gold/inventory/shop plumbing that already exists.
