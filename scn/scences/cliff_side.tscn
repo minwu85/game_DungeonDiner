@@ -1,4 +1,4 @@
-[gd_scene load_steps=32 format=4 uid="uid://d0xiw6o53gdt4"]
+[gd_scene load_steps=36 format=4 uid="uid://d0xiw6o53gdt4"]
 
 [ext_resource type="Texture2D" uid="uid://bid65k2w357eg" path="res://art/Environment/Tilesets/Dungeon_Tiles.png" id="1_hbrdx"]
 [ext_resource type="Script" uid="uid://djrmxckt8wtf" path="res://scn/scences/cliff_side.gd" id="1_ox6gk"]
@@ -18,6 +18,7 @@
 [ext_resource type="PackedScene" path="res://scn/ui/hud/scene_fade.tscn" id="16_fade"]
 [ext_resource type="Script" uid="uid://so2b60taf6r2" path="res://scn/scences/manager.gd" id="17_manager"]
 [ext_resource type="PackedScene" uid="uid://y5m7h3q0st16" path="res://scn/ui/pausemenu.tscn" id="18_pausemenu"]
+[ext_resource type="Texture2D" uid="uid://tk24duotp1xv" path="res://art/Entities/Characters/Body_A/Animations/Idle_Base/Idle_Down-Sheet.png" id="19_portrait"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_h2r8g"]
 texture = ExtResource("1_hbrdx")
@@ -1600,6 +1601,20 @@ _data = {
 &"day_fade_out": SubResource("Animation_waw5s")
 }
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_dialogue_portrait"]
+atlas = ExtResource("19_portrait")
+region = Rect2(0, 0, 64, 64)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_portrait_circle"]
+bg_color = Color(0.35, 0.35, 0.35, 1)
+corner_radius_top_left = 45
+corner_radius_top_right = 45
+corner_radius_bottom_right = 45
+corner_radius_bottom_left = 45
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_name_chip"]
+bg_color = Color(0.9, 0.9, 0.9, 1)
+
 [node name="cliff_side" type="Node2D"]
 script = ExtResource("1_ox6gk")
 
@@ -1754,12 +1769,105 @@ offset_right = 288.0
 offset_bottom = 124.0
 text = "Close"
 
+[node name="ChoicePanel" type="Panel" parent="CanvasLayer"]
+visible = false
+offset_left = 220.0
+offset_top = 130.0
+offset_right = 420.0
+offset_bottom = 230.0
+
+[node name="Title" type="Label" parent="CanvasLayer/ChoicePanel"]
+offset_left = 10.0
+offset_top = 6.0
+offset_right = 190.0
+offset_bottom = 24.0
+horizontal_alignment = 1
+text = "Talk or buy?"
+
+[node name="TalkButton" type="Button" parent="CanvasLayer/ChoicePanel"]
+offset_left = 10.0
+offset_top = 32.0
+offset_right = 95.0
+offset_bottom = 56.0
+text = "Talk"
+
+[node name="BuyButton" type="Button" parent="CanvasLayer/ChoicePanel"]
+offset_left = 105.0
+offset_top = 32.0
+offset_right = 190.0
+offset_bottom = 56.0
+text = "Buy"
+
+[node name="CancelButton" type="Button" parent="CanvasLayer/ChoicePanel"]
+offset_left = 10.0
+offset_top = 62.0
+offset_right = 190.0
+offset_bottom = 84.0
+text = "Cancel"
+
+[node name="DialogueBox" type="Panel" parent="CanvasLayer"]
+visible = false
+offset_left = 20.0
+offset_top = 270.0
+offset_right = 620.0
+offset_bottom = 355.0
+
+[node name="LeftPortrait" type="Panel" parent="CanvasLayer/DialogueBox"]
+offset_left = 0.0
+offset_top = -75.0
+offset_right = 90.0
+offset_bottom = 15.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_portrait_circle")
+
+[node name="PlayerPortraitImg" type="TextureRect" parent="CanvasLayer/DialogueBox/LeftPortrait"]
+offset_left = 15.0
+offset_top = 15.0
+offset_right = 75.0
+offset_bottom = 75.0
+texture = SubResource("AtlasTexture_dialogue_portrait")
+stretch_mode = 5
+
+[node name="RightPortrait" type="Panel" parent="CanvasLayer/DialogueBox"]
+offset_left = 510.0
+offset_top = -75.0
+offset_right = 600.0
+offset_bottom = 15.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_portrait_circle")
+
+[node name="NameLabel" type="Label" parent="CanvasLayer/DialogueBox"]
+offset_left = 0.0
+offset_top = -20.0
+offset_right = 120.0
+offset_bottom = 0.0
+theme_override_styles/normal = SubResource("StyleBoxFlat_name_chip")
+theme_override_colors/font_color = Color(0.1, 0.1, 0.1, 1)
+text = "Shopkeeper:"
+
+[node name="TextLabel" type="Label" parent="CanvasLayer/DialogueBox"]
+offset_left = 20.0
+offset_top = 30.0
+offset_right = 580.0
+offset_bottom = 70.0
+autowrap_mode = 3
+text = ""
+
+[node name="NextButton" type="Button" parent="CanvasLayer/DialogueBox"]
+offset_left = 535.0
+offset_top = 60.0
+offset_right = 590.0
+offset_bottom = 80.0
+text = "Next"
+
 [node name="scene_fade" parent="CanvasLayer" instance=ExtResource("16_fade")]
 
 [connection signal="body_entered" from="cliffside_exitpoint" to="." method="_on_cliffside_exitpoint_body_entered"]
 [connection signal="timeout" from="cliff_side_light/day_night" to="." method="_on_day_night_timeout"]
 [connection signal="pressed" from="CanvasLayer/ShopPanel/BuyButton" to="." method="_on_buy_sword_pressed"]
 [connection signal="pressed" from="CanvasLayer/ShopPanel/CloseButton" to="." method="_on_shop_close_pressed"]
+[connection signal="pressed" from="CanvasLayer/ChoicePanel/TalkButton" to="." method="_on_choice_talk_pressed"]
+[connection signal="pressed" from="CanvasLayer/ChoicePanel/BuyButton" to="." method="_on_choice_buy_pressed"]
+[connection signal="pressed" from="CanvasLayer/ChoicePanel/CancelButton" to="." method="_on_choice_cancel_pressed"]
+[connection signal="pressed" from="CanvasLayer/DialogueBox/NextButton" to="." method="_on_dialogue_next_pressed"]
 [connection signal="pressed" from="CanvasLayer/pausemenu/Panel/VBoxContainer/Resume" to="manager" method="_on_resume_pressed"]
 [connection signal="pressed" from="CanvasLayer/pausemenu/Panel/VBoxContainer/Save" to="manager" method="_on_save_pressed"]
 [connection signal="pressed" from="CanvasLayer/pausemenu/Panel/VBoxContainer/Inventory" to="manager" method="_on_inventory_pressed"]
