@@ -11,4 +11,5 @@ Shope
 <img width="1914" height="1082" alt="image" src="https://github.com/user-attachments/assets/907deac3-d3a9-4ced-b14c-e68838f3acbc" />
 
 shop - talk
-<img width="1906" height="1076" alt="image" src="https://github.com/user-attachments/assets/79805f94-9be6-4b5c-b6ca-96d42b1c1e46" />
+<img width="1904" height="1071" alt="image" src="https://github.com/user-attachments/assets/33894fc2-d4b7-4919-a42b-047616993e7a" />
+
