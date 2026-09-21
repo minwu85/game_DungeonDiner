@@ -1542,30 +1542,6 @@ sources/4 = SubResource("TileSetAtlasSource_dxp05")
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ef1v3"]
 size = Vector2(23, 57)
 
-[sub_resource type="GDScript" id="GDScript_l6yxi"]
-script/source = "extends Label
-
-@onready var player = get_node(\"/root/world/player/player\")
-
-#func _ready() -> void:
-	#text = \"HP: \" + str(global.player_health)
-
-#func _process(delta: float) -> void:
-	#text = \"HP: \" + str(global.player_health)
-"
-
-[sub_resource type="GDScript" id="GDScript_xg2qh"]
-script/source = "extends Label
-
-@onready var player = get_node(\"/root/world/player/player\")
-
-#func _ready() -> void:
-#	text = \"Gold: \" + str(player.gold)
-
-#func _process(delta: float) -> void:
-#	text = \"Gold: \" + str(player.gold)
-"
-
 [sub_resource type="Animation" id="Animation_0y1m3"]
 length = 0.001
 tracks/0/type = "value"
@@ -1653,6 +1629,7 @@ shape = SubResource("RectangleShape2D_ef1v3")
 [node name="cliff_side_light" type="Node2D" parent="."]
 
 [node name="sun" type="DirectionalLight2D" parent="cliff_side_light"]
+energy = 0.1
 blend_mode = 1
 range_layer_min = -1
 shadow_enabled = true
@@ -1668,24 +1645,6 @@ wait_time = 30.0
 autostart = true
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
-
-[node name="HP" type="Label" parent="CanvasLayer"]
-visible = false
-offset_left = 6.0
-offset_top = 63.0
-offset_right = 46.0
-offset_bottom = 86.0
-text = "HP: "
-script = SubResource("GDScript_l6yxi")
-
-[node name="Gold" type="Label" parent="CanvasLayer"]
-visible = false
-offset_left = 7.0
-offset_top = 84.0
-offset_right = 52.0
-offset_bottom = 107.0
-text = "Gold: "
-script = SubResource("GDScript_xg2qh")
 
 [node name="Day" type="Label" parent="CanvasLayer"]
 modulate = Color(1, 1, 1, 0)
@@ -1703,19 +1662,6 @@ root_node = NodePath("../Day")
 libraries = {
 &"": SubResource("AnimationLibrary_2dxml")
 }
-
-[node name="HealthBar" type="TextureProgressBar" parent="CanvasLayer"]
-offset_left = 3.0
-offset_top = 2.0
-offset_right = 173.0
-offset_bottom = 27.0
-value = 50.0
-nine_patch_stretch = true
-texture_under = ExtResource("10_e5hm1")
-texture_over = ExtResource("11_qbtqr")
-texture_progress = ExtResource("12_0w8iv")
-tint_over = Color(0.690297, 0.788899, 0.843713, 1)
-tint_progress = Color(0.965649, 0, 0.1388, 1)
 
 [connection signal="body_entered" from="cliffside_exitpoint" to="." method="_on_cliffside_exitpoint_body_entered"]
 [connection signal="timeout" from="cliff_side_light/day_night" to="." method="_on_day_night_timeout"]

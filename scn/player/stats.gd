@@ -2,6 +2,7 @@ extends CanvasLayer
 
 @onready var health_bar = $HealthBar
 @onready var stamina_bar = $stamina
+@onready var gold_label = $GoldDisplay/GoldLabel
 
 var max_player_health := 100
 var _player_health := max_player_health
@@ -23,6 +24,12 @@ func _ready() -> void:
 	if health_bar:
 		health_bar.max_value = max_player_health
 		health_bar.value = _player_health
+	set_gold(0)
+
+# Updates the gold counter displayed below the energy/stamina bar
+func set_gold(amount: int) -> void:
+	if gold_label:
+		gold_label.text = str(amount)
 
 # Optional function to apply damage
 func apply_damage(amount: int) -> void:

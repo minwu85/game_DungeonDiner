@@ -1,10 +1,6 @@
 extends Node
 
 
-@onready var day_text = get_node_or_null("/root/Main/CanvasLayer/Day")
-@onready var day_anim = get_node_or_null("/root/Main/CanvasLayer/AnimDay")
-
-
 var player_current_attack = false
 var player_current_slice = false
 var current_scene = "world"
@@ -47,18 +43,8 @@ func apply_light_state(time_light: Light2D, point_light: Light2D = null):
 	var tween1 = get_tree().create_tween()
 	match state_time:
 		TimeState.MORNING:
-			day_ui()
 			if time_light: tween.tween_property(time_light, "energy", 0.1, 1.5)
 			if point_light: tween1.tween_property(point_light, "energy", 0, 1.5)
 		TimeState.EVENING:
 			if time_light: tween.tween_property(time_light, "energy", 1.0, 1.5)
 			if point_light: tween1.tween_property(point_light, "energy", 1.5, 1.5)
-			
-func day_ui():
-	if !day_text or !day_anim:
-		print("⚠️ Day text or animation not set.")
-		return
-	day_text.text = "Day " + str(day_count)
-	day_anim.play("day_fade_in")
-	await get_tree().create_timer(3).timeout
-	day_anim.play("day_fade_out")

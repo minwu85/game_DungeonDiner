@@ -8,33 +8,28 @@ extends Node2D
 #@onready var health_bar=$CanvasLayer/HealthBar #call healthbar display 
 @onready var player=$player/player #call player
 
-enum TimeState {
-	MORNING,
-	EVENING
-}
-
-var state_time = TimeState.MORNING
-var day_count: int
-
 func _ready():
-	
-	##player position 
-	if global.game_first_loadin == true:#player first position set 
+
+	##player position
+	if global.game_first_loadin == true:#player first position set
 		$player/player.position.x = global.player_start_posx
 		$player/player.position.y = global.player_start_posy
 	else:#player position set change after first scence change
 		$player/player.position.x = global.player_exit_cliffside_posx
 		$player/player.position.y = global.player_exit_cliffside_posy
-	
+
 	##light change control
 	if day_night_timer:
 		day_night_timer.start()
 	global.apply_light_state(time_light)
 	set_day_ui()
-	
-	#day count
-	day_count=1
-	
+
+func _on_day_night_timeout() -> void:
+	global.toggle_day_night()
+	global.apply_light_state(time_light)
+	if global.state_time == global.TimeState.EVENING:
+		set_day_ui()
+
 func _process(delta):
 	change_scene()#call change scence
 

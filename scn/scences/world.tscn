@@ -1903,30 +1903,6 @@ sources/8 = SubResource("TileSetAtlasSource_rtt20")
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_d4bdn"]
 size = Vector2(22, 37)
 
-[sub_resource type="GDScript" id="GDScript_1oksg"]
-script/source = "extends Label
-
-@onready var player = get_node(\"/root/world/player/player\")
-
-#func _ready() -> void:
-	#text = \"HP: \" + str(global.player_health)
-
-#func _process(delta: float) -> void:
-	#text = \"HP: \" + str(global.player_health)
-"
-
-[sub_resource type="GDScript" id="GDScript_0y1m3"]
-script/source = "extends Label
-
-@onready var player = get_node(\"/root/world/player/player\")
-
-func _ready() -> void:
-	text = \"Gold: \" + str(player.gold)
-
-func _process(delta: float) -> void:
-	text = \"Gold: \" + str(player.gold)
-"
-
 [sub_resource type="Animation" id="Animation_0y1m3"]
 length = 0.001
 tracks/0/type = "value"
@@ -2039,6 +2015,7 @@ position = Vector2(199, 53)
 visible = false
 
 [node name="sun" type="DirectionalLight2D" parent="light"]
+energy = 0.1
 blend_mode = 1
 range_layer_min = -1
 
@@ -2047,24 +2024,6 @@ wait_time = 30.0
 autostart = true
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
-
-[node name="HP" type="Label" parent="CanvasLayer"]
-visible = false
-offset_left = 6.0
-offset_top = 63.0
-offset_right = 46.0
-offset_bottom = 86.0
-text = "HP: "
-script = SubResource("GDScript_1oksg")
-
-[node name="Gold" type="Label" parent="CanvasLayer"]
-visible = false
-offset_left = 7.0
-offset_top = 84.0
-offset_right = 52.0
-offset_bottom = 107.0
-text = "Gold: "
-script = SubResource("GDScript_0y1m3")
 
 [node name="Day" type="Label" parent="CanvasLayer"]
 modulate = Color(1, 1, 1, 0)

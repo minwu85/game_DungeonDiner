@@ -6,26 +6,16 @@ extends Node2D
 @onready var day_text = $CanvasLayer/Day #call day text
 @onready var day_anim = $CanvasLayer/AnimationPlayer #call day text anim
 
-enum TimeState {
-	MORNING,
-	EVENING
-}
-
-var state_time = TimeState.MORNING
-var day_count: int
-
 func _ready():
-	# light control
+	# light control - snap instantly to the current state so the scene
+	# never opens with a full-energy "sun" subtracting all the light
 	time_light.enabled = true
 	point_light.enabled = true
-	
+	apply_light_state_instant()
+
 	if day_night_timer:
 		day_night_timer.start()
 
-	set_light_state()
-
-	# day count init
-	day_count = 1
 	set_day_text()
 	day_text_fade()
 
@@ -44,38 +34,26 @@ func change_scene():
 		print("Trying to change from", global.current_scene)
 
 func _on_day_night_timeout() -> void:
-	if state_time == TimeState.MORNING:
-		state_time = TimeState.EVENING
-	else:
-		state_time = TimeState.MORNING
-	set_light_state()
+	global.toggle_day_night()
+	global.apply_light_state(time_light, point_light)
+	if global.state_time == global.TimeState.EVENING:
+		set_day_text()
+		day_text_fade()
 
-func set_light_state():
-	# Create tweens
-	var tween = get_tree().create_tween()
-	var tween1 = get_tree().create_tween()
-
-	match state_time:
-		TimeState.MORNING:
-			if time_light:
-				tween.tween_property(time_light, "energy", 0.1, 20)
-			if point_light:
-				tween1.tween_property(point_light, "energy", 0, 20)
-			print("now is morning")
-
-		TimeState.EVENING:
-			if time_light:
-				tween.tween_property(time_light, "energy", 1, 20)
-			if point_light:
-				tween1.tween_property(point_light, "energy", 1.5, 20)
-			day_count += 1
-			set_day_text()
-			day_text_fade()
-			print("now is night")
+## Sets the light energy to match the current state immediately (no tween),
+## so entering the scene doesn't flash to full darkness while it eases in.
+func apply_light_state_instant():
+	match global.state_time:
+		global.TimeState.MORNING:
+			if time_light: time_light.energy = 0.1
+			if point_light: point_light.energy = 0
+		global.TimeState.EVENING:
+			if time_light: time_light.energy = 1.0
+			if point_light: point_light.energy = 1.5
 
 func set_day_text():
 	if day_text:
-		day_text.text = "Day " + str(day_count)
+		day_text.text = "Day " + str(global.day_count)
 
 func day_text_fade():
 	if day_anim:

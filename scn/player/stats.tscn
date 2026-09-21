@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://dw4bd4ji2yc74"]
+[gd_scene load_steps=9 format=3 uid="uid://dw4bd4ji2yc74"]
 
 [ext_resource type="Texture2D" uid="uid://cmdcrw7dgarb4" path="res://art/art2/sprites/Sprite-0003.png" id="1_a63hv"]
 [ext_resource type="Script" uid="uid://cf3x4vkj1jxg4" path="res://scn/player/stats.gd" id="1_lake2"]
@@ -6,6 +6,11 @@
 [ext_resource type="Texture2D" uid="uid://djmk3eps6mmod" path="res://art/art2/sprites/Sprite-0002.png" id="3_1vlxp"]
 [ext_resource type="Texture2D" uid="uid://d0ngvwe3t7ecs" path="res://art/art2/sprites/energy_bar_empty.png" id="5_j4kmg"]
 [ext_resource type="Texture2D" uid="uid://cihgqljqux86o" path="res://art/art2/sprites/energy_bar_progress.png" id="6_jk587"]
+[ext_resource type="Texture2D" uid="uid://df2wqtc8fxc6l" path="res://art/art2/MonedaD.png" id="7_coin"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_coin_icon"]
+atlas = ExtResource("7_coin")
+region = Rect2(0, 0, 16, 16)
 
 [node name="stats" type="CanvasLayer"]
 script = ExtResource("1_lake2")
@@ -34,3 +39,22 @@ nine_patch_stretch = true
 texture_under = ExtResource("5_j4kmg")
 texture_progress = ExtResource("6_jk587")
 tint_progress = Color(1, 1, 0.678431, 1)
+
+[node name="GoldDisplay" type="HBoxContainer" parent="."]
+offset_left = 8.0
+offset_top = 44.0
+offset_right = 100.0
+offset_bottom = 64.0
+theme_override_constants/separation = 4
+
+[node name="CoinIcon" type="TextureRect" parent="GoldDisplay"]
+custom_minimum_size = Vector2(16, 16)
+layout_mode = 2
+size_flags_vertical = 4
+texture = SubResource("AtlasTexture_coin_icon")
+stretch_mode = 1
+
+[node name="GoldLabel" type="Label" parent="GoldDisplay"]
+layout_mode = 2
+size_flags_vertical = 4
+text = "0"

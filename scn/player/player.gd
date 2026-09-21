@@ -18,7 +18,11 @@ var player_alive = true
 var attack_ip = false
 var is_collecting = false
 
-var gold = 0
+var gold: int = 0:
+	set(value):
+		gold = value
+		if stats:
+			stats.set_gold(gold)
 var walk_speed = 1.0
 var run_speed = 2.0
 var movement_type = 1 # 1 for walk, 2 for run (used by play_anim)
